@@ -32,19 +32,30 @@ protected:
   void resizeGL(int w, int h);
   void paintGL();
 
+  void keyPressEvent(QKeyEvent*);
+
 private:
   void computeType1Points();
-  int getYBar (float lambda, float *y_bar);
+  void computeType2Points();
 
-  QVector <Point> _points;
+  QVector <Point> _pointMountains;
+  QVector <Point> _pointValleys;
   QVector <OptimalColor> _optimalColors;
 
   float _K;
   int _N;
   const float _delta_Y;
-  const float _delta_lambda;
   const float _Y;
-  QMap <float, float> _y_barValuesFromLambda;
+  const float _delta_lambda;
+
+
+  GLuint _vBuffer[2];
+
+  float* _y_barSum;
+
+  float _eyeX;
+  float _eyeY;
+  float _eyeZ;
 
 };
 
