@@ -1,13 +1,17 @@
 #include "glcanvas.h"
 #include "color.h"
+#include <qmath.h>
 
 #include <GL/glu.h>
 
 #define LAMBDA_MIN 380.1
 
 GLCanvas::GLCanvas(QWidget *parent)
-  : QGLWidget(parent), _N(4001), _Y (0.2), _delta_Y (0.01), _delta_lambda (0.1)
+  : QGLWidget(parent),  _delta_lambda (0.1),
+    _Y (0.2), _delta_Y (0.01)
 {
+  _N = ceil( 400.0/_delta_lambda);
+
   for (float lambda = LAMBDA_MIN; lambda <= 780.0; lambda += 5.0)
   {
     float y_bar;
@@ -32,6 +36,19 @@ GLCanvas::GLCanvas(QWidget *parent)
         else
           reflectanceSurfaceSPD[i] = 0.0;
 
+      float X;
+      float Y;
+      float Z;
+      if (corCIEXYZfromSurfaceReflectance(LAMBDA_MIN, _N, _delta_lambda,
+                                          reflectanceSurfaceSPD, &X, &Y,&Z,D65))
+      {
+        Point p;
+        p.x = X * 2;
+        p.y = Y * 2;
+        p.z = Z * 2;
+
+        _points.append(p);
+      }
     }
   }
 
@@ -60,6 +77,26 @@ GLCanvas::GLCanvas(QWidget *parent)
 //  }
 }
 
+
+int GLCanvas::getYBar(float lambda, float *y_bar)
+{
+  if (!y_bar) return 0;
+
+  *y_bar = _y_barValuesFromLambda.value(lambda, -1);
+
+  if (*y_bar == -1)
+  {
+    if (corGetCIExyz(lambda, 0, y_bar, 0))
+    {
+      _y_barValuesFromLambda.insert(lambda, *y_bar);
+      return 1;
+    }
+    else
+      return 0;
+  }
+
+  return 1;
+}
 
 void GLCanvas::computeType1Points()
 {
@@ -101,9 +138,11 @@ void GLCanvas::resizeGL(int w, int h)
   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity ();
-  gluOrtho2D (0.0, (GLdouble) w, 0.0, (GLdouble) h);
-  glTranslated(10, 10, 0);
-  glScaled(300, 300, 0);
+  glOrtho(-3.5, 3.5, -3.5, 3.5, -20.0, 20.0);
+  gluLookAt(0.2, 0.2, 0.5, 0.0, 0.0, 0.0, 0, 1, 0);
+  glMatrixMode(GL_MODELVIEW);
+//  glTranslated(1, 1, 0);
+//  glScaled(s, s, s);
 }
 
 void GLCanvas::paintGL()
@@ -128,29 +167,12 @@ void GLCanvas::paintGL()
 
   glPointSize(4);
   glBegin(GL_POINTS);
-  int i = 0;
-  for (float lambda = float(400); lambda < float(700);
-       lambda += 0.01)
+
+  foreach (const Point &p, _points)
   {
-    Point p = _points[i++];
-    glColor3f(p.r, p.g, p.b);
-    glVertex2f (p.x, p.y);
-
-//    glColor3f(1.0, 0.0, 0.0);
-//    glVertex2f (lambda - 400, p.x * 100);
-
-//    glColor3f(0.0, 1.0, 0.0);
-//    glVertex2f (lambda - 400, p.y * 100);
-
-//    glColor3f(0.0, 0.0, 1.0);
-//    glVertex2f (lambda - 400, p.z * 100);
+    glVertex3f (p.x, p.y, p.z);
   }
 
-//  for (int i = 0; i < _points.size(); i++)
-//    glVertex3f (_points[i].x, _points[i].y, _points[i].z);
-
-//  for (int i = 0; i < _points.size(); i++)
-//    glVertex3f (_points[i].x, _points[i].y, _points[i].z);
 
   glEnd();
 

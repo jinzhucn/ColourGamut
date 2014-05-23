@@ -928,7 +928,10 @@ static float getFunctionValue(float x, float xmin, int npoints, float delta_x, f
   return y;
 }
 
-int corCIEXYZfromSurfaceReflectance(float lambda_min, int n_points, int delta_lambda, float* reflectance, float* X, float* Y, float* Z, int reference_light)
+int corCIEXYZfromSurfaceReflectance(float lambda_min, int n_points,
+                                    float delta_lambda, float* reflectance,
+                                    float* X, float* Y, float* Z,
+                                    int reference_light)
 {
   float sum_x=0, sum_y=0, sum_z=0, sum_w=0;
   float lambda, lambda_max = lambda_min + (n_points-1)*delta_lambda;

@@ -3,6 +3,7 @@
 
 #include <QGLWidget>
 #include <QVector>
+#include <QMap>
 
 typedef struct
 {
@@ -33,15 +34,18 @@ protected:
 
 private:
   void computeType1Points();
+  int getYBar (float lambda, float *y_bar);
 
   QVector <Point> _points;
   QVector <OptimalColor> _optimalColors;
 
   float _K;
-  const int _N;
+  int _N;
   const float _delta_Y;
   const float _delta_lambda;
   const float _Y;
+  QMap <float, float> _y_barValuesFromLambda;
+
 };
 
 #endif // GLCANVAS_H

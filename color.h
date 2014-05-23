@@ -75,7 +75,7 @@ float corGetA(float lambda);
 int corGetCIExyfromLambda(float lambda, float* x, float* y);
 
 /* get CIEXYZ coordinate of a given reflective spectrum */
- int corCIEXYZfromSurfaceReflectance(float lambda_min, int n_points, int delta_lambda, float* reflectance, float* X, float* Y, float* Z, int reference_light);
+ int corCIEXYZfromSurfaceReflectance(float lambda_min, int n_points, float delta_lambda, float* reflectance, float* X, float* Y, float* Z, int reference_light);
 
 /* convert from CIELab to sRGB */
 int corCIELabtosRGB(float L, float a, float b, float* R, float* G, float* B, int reference_light) ;
