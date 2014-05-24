@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QStatusBar>
 #include "glcanvas.h"
 
 class MainWindow : public QMainWindow
@@ -14,6 +15,8 @@ public:
 
 private:
   GLCanvas *_canvas;
+
+  QStatusBar *_statusBar;
 };
 
 #endif // MAINWINDOW_H

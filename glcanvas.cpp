@@ -14,11 +14,16 @@ void glutWireCube( GLdouble dSize );
 
 GLCanvas::GLCanvas(QWidget *parent)
   : QGLWidget(parent),  _delta_lambda (0.5),
-    _Y (0.5), _delta_Y (0.5)
+    _Y (100), _delta_Y (100)
 {
-  _eyeX = 2;
-  _eyeY = 2;
-  _eyeZ = 5;
+  _eyeX = 0;
+  _eyeY = 0;
+
+
+  _xCoord = 0.0;
+  _yCoord = 0.5;
+  _zCoord = 2.0;
+
 
   _N = ceil( (LAMBDA_MAX - LAMBDA_MIN) / _delta_lambda);
 
@@ -47,9 +52,32 @@ GLCanvas::GLCanvas(QWidget *parent)
 
   _K = 100.0f / _K;
 
-  computeType1Points();
+  QLinkedList <OptimalColor> optimalMountainColors;
+  QLinkedList <OptimalColor> optimalValleyColors;
 
-  foreach (const OptimalColor &color, _optimalColors)
+  computPoints(optimalMountainColors, MOUNTAIN);
+  computPoints(optimalValleyColors, VALLEY);
+
+  //  GLfloat *vertexes = new GLfloat[optimalMountainColors.size()
+  //                                  + optimalValleyColors.size()];
+
+  pointsCoordinatesFromIndexes(optimalMountainColors, _mountainPoints, MOUNTAIN);
+  pointsCoordinatesFromIndexes(optimalValleyColors, _valleyPoints,
+                               VALLEY);
+
+  optimalMountainColors.clear();
+  optimalValleyColors.clear();
+
+  free (_y_barSum);
+
+  setFocusPolicy(Qt::StrongFocus);
+}
+
+void GLCanvas::pointsCoordinatesFromIndexes(
+    QLinkedList<OptimalColor>&optimalColors, QLinkedList<Point> &points,
+    LAMBDA_TYPE type)
+{
+  foreach (const OptimalColor &color, optimalColors)
   {
     int spdSamples = _N;
 
@@ -57,10 +85,13 @@ GLCanvas::GLCanvas(QWidget *parent)
     if (reflectanceSurfaceSPD)
     {
       for (int i = 0; i < spdSamples; i++)
+      {
         if (color.index1 <= i  && i <= color.index2)
-          reflectanceSurfaceSPD[i] = 1.0;
+          reflectanceSurfaceSPD[i] = (type == MOUNTAIN) ? 1.0 : 0.0;
         else
-          reflectanceSurfaceSPD[i] = 0.0;
+          reflectanceSurfaceSPD[i] = (type == MOUNTAIN) ? 0.0 : 1.0;
+
+      }
 
       float X;
       float Y;
@@ -69,60 +100,31 @@ GLCanvas::GLCanvas(QWidget *parent)
                                           reflectanceSurfaceSPD, &X, &Y,&Z,D65))
       {
         Point p;
-        p.x = X * 2;
-        p.y = Y * 2;
-        p.z = Z * 2;
+        p.x = X;
+        p.y = Y;
+        p.z = Z;
 
-        _pointMountains.append(p);
+        points.append(p);
       }
     }
   }
-
-  _optimalColors.clear();
-
-//  computeType2Points();
-  foreach (const OptimalColor &color, _optimalColors)
-  {
-    float *reflectanceSurfaceSPD = (float *) malloc (sizeof(float) * _N);
-    if (reflectanceSurfaceSPD)
-    {
-      for (int i = 0; i < _N; i++)
-        if (color.index1 <= i  && i <= color.index2)
-          reflectanceSurfaceSPD[i] = 0.0;
-        else
-          reflectanceSurfaceSPD[i] = 1.0;
-
-      float X;
-      float Y;
-      float Z;
-      if (corCIEXYZfromSurfaceReflectance(LAMBDA_MIN, _N, _delta_lambda,
-                                          reflectanceSurfaceSPD, &X, &Y,&Z,D65))
-      {
-        Point p;
-        p.x = X * 2;
-        p.y = Y * 2;
-        p.z = Z * 2;
-
-        _pointValleys.append(p);
-      }
-    }
-  }
-
-
-  setFocusPolicy(Qt::StrongFocus);
-
 }
 
-void GLCanvas::computeType1Points()
+void GLCanvas::computPoints(QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type)
 {
-//  float lambda = LAMBDA_MIN;
   for (int i = 1; i <= _N; i++)
   {
     for (int j = 1; j <= _N; j++)
       if (i < j)
       {
         float Y;
-        float y_bar_sum = _y_barSum[j-1] - _y_barSum[i-1];
+        float y_bar_sum;
+
+        if (type == MOUNTAIN)
+          y_bar_sum = _y_barSum[j-1] - _y_barSum[i-1];
+        else if(type == VALLEY)
+          y_bar_sum = (_y_barSum[i-1] - _y_barSum[0]); +
+                                    (_y_barSum[_N - 1] - _y_barSum[j - 1]);
 
         Y = _K * y_bar_sum;
 
@@ -133,92 +135,60 @@ void GLCanvas::computeType1Points()
           color.index1 = i;
           color.index2 = j;
 
-          _optimalColors.append(color);
+          colors.append(color);
         }
       }
   }
-}
-
-void GLCanvas::computeType2Points()
-{
-  float lambda = LAMBDA_MIN;
-  for (int i = 1; i <= _N; i++)
-    for (int j = 1; j <= _N; j++)
-      if (i < j)
-      {
-        float Y;
-        float y_bar_sum = 0;
-        for (int k = 1; k <= i; k++)
-        {
-          float y_bar;
-          if (corGetCIExyz(lambda + k * _delta_lambda, 0, &y_bar, 0))
-            y_bar_sum += y_bar;
-        }
-
-        for (int k = j; k <= _N; k++)
-        {
-          float y_bar;
-          if (corGetCIExyz(lambda + k * _delta_lambda, 0, &y_bar, 0))
-            y_bar_sum += y_bar;
-        }
-
-        Y = _K * y_bar_sum;
-
-        if (( _Y - _delta_Y <= Y)  &&
-            ( Y <= _Y + _delta_Y))
-        {
-          OptimalColor color;
-          color.index1 = i;
-          color.index2 = j;
-
-          _optimalColors.append(color);
-        }
-      }
 }
 
 void GLCanvas::initializeGL()
 {
-  glClearColor(1.0, 1.0, 1.0, 0.0);
+  glClearColor(0.8, 0.8, 0.8, 0.0);
   glShadeModel (GL_FLAT);
+  glEnableClientState (GL_VERTEX_ARRAY);
 }
 
 void GLCanvas::keyPressEvent(QKeyEvent *event)
 {
   bool shift = event->modifiers() & Qt::ShiftModifier;
 
-  float increment = 0.5;
+  int rotIncrement = 10;
+  float depthIncrement = 0.1;
 
   switch (event->key())
   {
     case Qt::Key_X:
       if (shift)
-        _eyeX += increment;
+        _eyeX += rotIncrement;
       else
-        _eyeX -= increment;
+        _eyeX -= rotIncrement;
+
+      _eyeX = _eyeX % 360;
 
       update();
       break;
 
     case Qt::Key_Y:
       if (shift)
-        _eyeY += increment;
+        _yCoord += depthIncrement;
       else
-        _eyeY -= increment;
+        _yCoord -= depthIncrement;
 
+      _eyeY = _eyeY % 360;
       update();
       break;
 
     case Qt::Key_P:
       if (shift)
-        _eyeZ += increment;
+        _zCoord += depthIncrement;
       else
-        _eyeZ -= increment;
+        _zCoord -= depthIncrement;
 
       update();
       break;
   }
 
-  qDebug () << _eyeX << "," << _eyeY << "," << _eyeZ;
+  qDebug () << _xCoord << "," << _yCoord << "," << _zCoord;
 
   QGLWidget::keyPressEvent(event);
 }
@@ -228,9 +198,12 @@ void GLCanvas::resizeGL(int w, int h)
   glViewport (0, 0, (GLsizei) w, (GLsizei) h);
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity ();
-  gluPerspective(50.0, float(w)/float(h), 0.1f, 1000.f);
+  gluPerspective(60.0, float(w)/float(h), 0.1f, 1000.f);
 
-  gluLookAt(_eyeX, _eyeY, _eyeZ, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+  gluLookAt(_xCoord, _yCoord, _zCoord, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+
+  glMatrixMode(GL_MODELVIEW);
+  glTranslated(-10, -10, 0);
 }
 
 void GLCanvas::paintGL()
@@ -239,28 +212,32 @@ void GLCanvas::paintGL()
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(_eyeX, _eyeY, _eyeZ, 0.0, 0.0, 0.0, 0, 1, 0);
+  gluLookAt(_xCoord, _yCoord, _zCoord, 0.0, 0.0, 0.0, 0, 1, 0);
 
-  glColor3f(0.0, 0.0, 0.0);
-
+  glRotatef(_eyeX, 0.0, 1.0, 0.0);
 
   glMatrixMode(GL_MODELVIEW);
 
+  glLineWidth(1);
+  glColor3f(1.0, 0.0, 0.0);
   glBegin(GL_LINES);
   glVertex3f(0.0, 0.0, 0.0);
   glVertex3f(1000.0, 0.0, 0.0);
   glEnd();
 
+  glColor3f(0.0, 1.0, 0.0);
   glBegin(GL_LINES);
   glVertex3f(0.0, 0.0, 0.0);
   glVertex3f(0.0, 1000, 0.0);
   glEnd();
 
+  glColor3f(0.0, 0.0, 1.0);
   glBegin(GL_LINES);
   glVertex3f(0.0, 0.0, 0.0);
   glVertex3f(0.0, 0.0, 1000.0);
   glEnd();
 
+  glColor3f(1.0, 1.0, 1.0);
   glPushMatrix();
   glTranslated(0.5, 0.5, 0.5);
   glutWireCube(1.0);
@@ -270,13 +247,13 @@ void GLCanvas::paintGL()
   glPointSize(1);
   glBegin(GL_POINTS);
 
-  foreach (const Point &p, _pointMountains)
+  foreach (const Point &p, _mountainPoints)
   {
     glColor3f (p.x, p.y, p.z);
     glVertex3f (p.x, p.y, p.z);
   }
 
-  foreach (const Point &p, _pointValleys)
+  foreach (const Point &p, _valleyPoints)
   {
     glColor3f (p.x, p.y, p.z);
     glVertex3f (p.x, p.y, p.z);

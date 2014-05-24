@@ -2,7 +2,7 @@
 #define GLCANVAS_H
 
 #include <QGLWidget>
-#include <QVector>
+#include <QLinkedList>
 #include <QMap>
 
 typedef struct
@@ -35,12 +35,15 @@ protected:
   void keyPressEvent(QKeyEvent*);
 
 private:
-  void computeType1Points();
-  void computeType2Points();
+  enum LAMBDA_TYPE { MOUNTAIN, VALLEY };
 
-  QVector <Point> _pointMountains;
-  QVector <Point> _pointValleys;
-  QVector <OptimalColor> _optimalColors;
+  void computPoints (QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type);
+
+  void pointsCoordinatesFromIndexes(QLinkedList<OptimalColor>&,
+                                    QLinkedList <Point> &, LAMBDA_TYPE type);
+
+  QLinkedList <Point> _mountainPoints;
+  QLinkedList <Point> _valleyPoints;
 
   float _K;
   int _N;
@@ -49,13 +52,17 @@ private:
   const float _delta_lambda;
 
 
-  GLuint _vBuffer[2];
+  GLfloat *_points;
 
   float* _y_barSum;
 
-  float _eyeX;
-  float _eyeY;
-  float _eyeZ;
+  int _eyeX;
+  int _eyeY;
+//  int _eyeZ;
+
+  float _xCoord;
+  float _yCoord;
+  float _zCoord;
 
 };
 

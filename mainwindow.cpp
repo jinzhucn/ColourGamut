@@ -5,10 +5,14 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent)
 {
-  QHBoxLayout *layout = new QHBoxLayout;
+  _statusBar = new QStatusBar(this);
+  _statusBar->showMessage("Controls: 'X': rotate; 'Y': up and down; "
+                          "'Z': depth");
 
   _canvas = new GLCanvas (this);
-  layout->addWidget(_canvas);
+
+  setStatusBar(_statusBar);
+
 
   setCentralWidget(_canvas);
 }
