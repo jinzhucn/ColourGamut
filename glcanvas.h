@@ -22,10 +22,16 @@ typedef struct
   float index2;
 } OptimalColor;
 
+enum ColorSpace {CIE_XYZ, CIE_RGB} ;
+
 class GLCanvas : public QGLWidget
 {
 public:
   explicit GLCanvas(QWidget *parent = 0);
+
+  inline void selectColorSpace (ColorSpace colorSpace)
+  { _colorSpace = colorSpace; update();}
+
 
 protected:
   void initializeGL();
@@ -58,11 +64,12 @@ private:
 
   int _eyeX;
   int _eyeY;
-//  int _eyeZ;
 
   float _xCoord;
   float _yCoord;
   float _zCoord;
+
+  ColorSpace _colorSpace;
 
 };
 

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include <QStatusBar>
+#include <QButtonGroup>
 #include "glcanvas.h"
 
 class MainWindow : public QMainWindow
@@ -13,10 +14,13 @@ public:
   explicit MainWindow(QWidget *parent = 0);
   ~MainWindow();
 
+public slots:
+  void selectColorSpace (QAbstractButton*);
+
 private:
   GLCanvas *_canvas;
+  QButtonGroup *_buttons;
 
-  QStatusBar *_statusBar;
 };
 
 #endif // MAINWINDOW_H

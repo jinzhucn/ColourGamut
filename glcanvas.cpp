@@ -16,6 +16,8 @@ GLCanvas::GLCanvas(QWidget *parent)
   : QGLWidget(parent),  _delta_lambda (0.5),
     _Y (100), _delta_Y (100)
 {
+  _colorSpace = CIE_XYZ;
+
   _eyeX = 0;
   _eyeY = 0;
 
@@ -57,9 +59,6 @@ GLCanvas::GLCanvas(QWidget *parent)
 
   computPoints(optimalMountainColors, MOUNTAIN);
   computPoints(optimalValleyColors, VALLEY);
-
-  //  GLfloat *vertexes = new GLfloat[optimalMountainColors.size()
-  //                                  + optimalValleyColors.size()];
 
   pointsCoordinatesFromIndexes(optimalMountainColors, _mountainPoints, MOUNTAIN);
   pointsCoordinatesFromIndexes(optimalValleyColors, _valleyPoints,
@@ -214,9 +213,9 @@ void GLCanvas::paintGL()
   glLoadIdentity();
   gluLookAt(_xCoord, _yCoord, _zCoord, 0.0, 0.0, 0.0, 0, 1, 0);
 
-  glRotatef(_eyeX, 0.0, 1.0, 0.0);
-
   glMatrixMode(GL_MODELVIEW);
+
+  glRotatef(_eyeX, 0.0, 1.0, 0.0);
 
   glLineWidth(1);
   glColor3f(1.0, 0.0, 0.0);
@@ -245,20 +244,52 @@ void GLCanvas::paintGL()
 
 
   glPointSize(1);
+//  GLfloat transformation [] = {2.960135, -0.471621, -0.563455, 1.0,
+//                               -0.500461, 1.287182, 0.086082, 1.0,
+//                               0.036281, -0.052922, 0.528317, 1.0,
+//                               0.0, 0.0, 0.0, 1.0};
+
+//  glLoadMatrixf(transformation);
+
   glBegin(GL_POINTS);
 
   foreach (const Point &p, _mountainPoints)
   {
-    glColor3f (p.x, p.y, p.z);
-    glVertex3f (p.x, p.y, p.z);
+    float X, Y, Z;
+
+    if (_colorSpace == CIE_RGB)
+    {
+      corCIEXYZtoCIERGB(p.x, p.y, p.z, &X, &Y, &Z);
+    }
+    else
+    {
+      X = p.x;
+      Y = p.y;
+      Z = p.z;
+    }
+
+    glColor3f (X, Y, Z);
+    glVertex3f (X, Y, Z);
   }
 
   foreach (const Point &p, _valleyPoints)
   {
-    glColor3f (p.x, p.y, p.z);
-    glVertex3f (p.x, p.y, p.z);
-  }
+    float X, Y, Z;
 
+    if (_colorSpace == CIE_RGB)
+    {
+      corCIEXYZtoCIERGB(p.x, p.y, p.z, &X, &Y, &Z);
+    }
+    else
+    {
+      X = p.x;
+      Y = p.y;
+      Z = p.z;
+    }
+
+    glColor3f (X, Y, Z);
+    glVertex3f (X, Y, Z);
+  }
 
   glEnd();
 
