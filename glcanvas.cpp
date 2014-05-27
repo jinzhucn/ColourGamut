@@ -57,8 +57,8 @@ GLCanvas::GLCanvas(QWidget *parent)
   QLinkedList <OptimalColor> optimalMountainColors;
   QLinkedList <OptimalColor> optimalValleyColors;
 
-  computPoints(optimalMountainColors, MOUNTAIN);
-  computPoints(optimalValleyColors, VALLEY);
+  computePoints(optimalMountainColors, MOUNTAIN);
+  computePoints(optimalValleyColors, VALLEY);
 
   pointsCoordinatesFromIndexes(optimalMountainColors, _mountainPoints, MOUNTAIN);
   pointsCoordinatesFromIndexes(optimalValleyColors, _valleyPoints,
@@ -109,7 +109,7 @@ void GLCanvas::pointsCoordinatesFromIndexes(
   }
 }
 
-void GLCanvas::computPoints(QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type)
+void GLCanvas::computePoints(QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type)
 {
   for (int i = 1; i <= _N; i++)
   {
@@ -253,47 +253,87 @@ void GLCanvas::paintGL()
 
   glBegin(GL_POINTS);
 
-  foreach (const Point &p, _mountainPoints)
-  {
-    float X, Y, Z;
+//  foreach (const Point &p, _mountainPoints)
+//  {
+//    float X, Y, Z;
 
-    if (_colorSpace == CIE_RGB)
-    {
-      corCIEXYZtoCIERGB(p.x, p.y, p.z, &X, &Y, &Z);
-    }
-    else
-    {
-      X = p.x;
-      Y = p.y;
-      Z = p.z;
-    }
+//    if (_colorSpace == CIE_RGB)
+//    {
+//      corCIEXYZtoRGB(p.x, p.y, p.z, &Y, &X, &Z);
+//    }
+//    else if (_colorSpace == CIE_LAB)
+//    {
+//      corCIEXYZtoRGB(p.x, p.y, p.z, &Y, &X, &Z);
+//    }
+//    else
+//    {
+//      X = p.x;
+//      Y = p.y;
+//      Z = p.z;
+//    }
 
-    glColor3f (X, Y, Z);
-    glVertex3f (X, Y, Z);
-  }
+//    glColor3f (X, Y, Z);
+//    glVertex3f (X, Y, Z);
+//  }
 
-  foreach (const Point &p, _valleyPoints)
-  {
-    float X, Y, Z;
+//  foreach (const Point &p, _valleyPoints)
+//  {
+//    float X, Y, Z;
 
-    if (_colorSpace == CIE_RGB)
-    {
-      corCIEXYZtoCIERGB(p.x, p.y, p.z, &X, &Y, &Z);
-    }
-    else
-    {
-      X = p.x;
-      Y = p.y;
-      Z = p.z;
-    }
+//    if (_colorSpace == CIE_RGB)
+//    {
+//      corCIEXYZtoLab(p.x, p.y, p.z, &Y, &X, &Z, D65);
+//      Y /= 200;
+//      X /= 200;
+//      Z /= 200;
+////      qDebug () << X << Y << Z;
+//    }
+//    else
+//    {
+//      X = p.x;
+//      Y = p.y;
+//      Z = p.z;
+//    }
 
-    glColor3f (X, Y, Z);
-    glVertex3f (X, Y, Z);
-  }
+//    glColor3f (X, Y, Z);
+//    glVertex3f (X, Y, Z);
+//  }
 
+  plotPoints(_mountainPoints);
+  plotPoints(_valleyPoints);
   glEnd();
 
   glFlush ();
+}
+
+void GLCanvas::plotPoints(const QLinkedList<Point> &list)
+{
+  foreach (const Point &p, list)
+  {
+    float X, Y, Z;
+
+    if (_colorSpace == CIE_RGB)
+    {
+      corCIEXYZtoCIERGB(p.x, p.y, p.z, &X, &Y, &Z);
+    }
+    else if (_colorSpace == CIE_LAB)
+    {
+      corCIEXYZtoLab(p.x, p.y, p.z, &Y, &X, &Z, D65);
+      Y /= 100;
+      X /= 100;
+      Z /= 100;
+    }
+    else
+    {
+      X = p.x;
+      Y = p.y;
+      Z = p.z;
+    }
+
+    glColor3f (X, Y, Z);
+    glVertex3f (X, Y, Z);
+  }
+
 }
 
 

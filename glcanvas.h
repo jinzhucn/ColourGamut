@@ -22,7 +22,7 @@ typedef struct
   float index2;
 } OptimalColor;
 
-enum ColorSpace {CIE_XYZ, CIE_RGB} ;
+enum ColorSpace {CIE_XYZ, CIE_RGB, CIE_LAB} ;
 
 class GLCanvas : public QGLWidget
 {
@@ -43,7 +43,9 @@ protected:
 private:
   enum LAMBDA_TYPE { MOUNTAIN, VALLEY };
 
-  void computPoints (QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type);
+  void plotPoints (const QLinkedList<Point> &);
+
+  void computePoints (QLinkedList<OptimalColor> &colors, LAMBDA_TYPE type);
 
   void pointsCoordinatesFromIndexes(QLinkedList<OptimalColor>&,
                                     QLinkedList <Point> &, LAMBDA_TYPE type);

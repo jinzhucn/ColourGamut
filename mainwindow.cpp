@@ -17,17 +17,20 @@ MainWindow::MainWindow(QWidget *parent) :
   QRadioButton *cieXYZSpace = new QRadioButton("CIE XYZ");
   cieXYZSpace->setChecked(true);
   QRadioButton *cieRGBSpace = new QRadioButton("CIE RGB");
+  QRadioButton *cieLABSpace = new QRadioButton("CIE LAB");
 
   _buttons->addButton(cieXYZSpace);
   _buttons->addButton(cieRGBSpace);
+  _buttons->addButton(cieLABSpace);
 
   buttonsLayout->addWidget(cieXYZSpace);
   buttonsLayout->addWidget(cieRGBSpace);
+  buttonsLayout->addWidget(cieLABSpace);
 
   QGroupBox *groupBox = new QGroupBox("Color Space", this);
   groupBox->setLayout(buttonsLayout);
 
-  groupBox->resize(200, 50);
+  groupBox->resize(300, 50);
 
 
   setCentralWidget(_canvas);
@@ -44,6 +47,8 @@ void MainWindow::selectColorSpace(QAbstractButton *button)
     _canvas->selectColorSpace(CIE_XYZ);
   else if (button->text() == "CIE RGB")
     _canvas->selectColorSpace(CIE_RGB);
+  else if (button->text() == "CIE LAB")
+    _canvas->selectColorSpace(CIE_LAB);
 }
 
 MainWindow::~MainWindow()
