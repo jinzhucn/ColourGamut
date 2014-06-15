@@ -177,7 +177,7 @@ void GLCanvas::keyPressEvent(QKeyEvent *event)
       update();
       break;
 
-    case Qt::Key_P:
+    case Qt::Key_Z:
       if (shift)
         _zCoord += depthIncrement;
       else
@@ -244,60 +244,8 @@ void GLCanvas::paintGL()
 
 
   glPointSize(1);
-//  GLfloat transformation [] = {2.960135, -0.471621, -0.563455, 1.0,
-//                               -0.500461, 1.287182, 0.086082, 1.0,
-//                               0.036281, -0.052922, 0.528317, 1.0,
-//                               0.0, 0.0, 0.0, 1.0};
-
-//  glLoadMatrixf(transformation);
 
   glBegin(GL_POINTS);
-
-//  foreach (const Point &p, _mountainPoints)
-//  {
-//    float X, Y, Z;
-
-//    if (_colorSpace == CIE_RGB)
-//    {
-//      corCIEXYZtoRGB(p.x, p.y, p.z, &Y, &X, &Z);
-//    }
-//    else if (_colorSpace == CIE_LAB)
-//    {
-//      corCIEXYZtoRGB(p.x, p.y, p.z, &Y, &X, &Z);
-//    }
-//    else
-//    {
-//      X = p.x;
-//      Y = p.y;
-//      Z = p.z;
-//    }
-
-//    glColor3f (X, Y, Z);
-//    glVertex3f (X, Y, Z);
-//  }
-
-//  foreach (const Point &p, _valleyPoints)
-//  {
-//    float X, Y, Z;
-
-//    if (_colorSpace == CIE_RGB)
-//    {
-//      corCIEXYZtoLab(p.x, p.y, p.z, &Y, &X, &Z, D65);
-//      Y /= 200;
-//      X /= 200;
-//      Z /= 200;
-////      qDebug () << X << Y << Z;
-//    }
-//    else
-//    {
-//      X = p.x;
-//      Y = p.y;
-//      Z = p.z;
-//    }
-
-//    glColor3f (X, Y, Z);
-//    glVertex3f (X, Y, Z);
-//  }
 
   plotPoints(_mountainPoints);
   plotPoints(_valleyPoints);
